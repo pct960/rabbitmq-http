@@ -10,7 +10,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-
 	//	"time"
 )
 
@@ -77,9 +76,6 @@ func (r *RabbitMQ) Connect() (err error) {
 	return nil
 }
 
-
-
-
 func (r *RabbitMQ) Publish(exchange, key string, deliverymode, priority uint8, body string) (err error) {
 	err = r.channel.Publish(exchange, key, false, false,
 		amqp.Publishing{
@@ -91,9 +87,6 @@ func (r *RabbitMQ) Publish(exchange, key string, deliverymode, priority uint8, b
 			Body:            []byte(body),
 		},
 	)
-
-
-
 	if err != nil {
 		log.Printf("[amqp] publish message error: %s\n", err)
 		return err
@@ -335,9 +328,6 @@ func QueueBindHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func PublishHandler(w http.ResponseWriter, r *http.Request) {
-
-
-	c := make(chan amqp.Return)
 	//var res []string
 	//
 	//for name, values := range r.Header {
@@ -370,11 +360,7 @@ func PublishHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		defer w.Write([]byte("publish message ok"))
-		rabbit.channel.NotifyReturn(c)
-		resp:= <-c
-		log.Printf("%s", resp.ReplyText)
-
+		w.Write([]byte("publish message ok"))
 	} else {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
