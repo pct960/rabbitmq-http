@@ -366,7 +366,7 @@ func PublishHandler(w http.ResponseWriter, r *http.Request) {
 		
 		rabbit.channel.NotifyReturn(c)
 		resp:= <-c
-		log.Printf("%s", resp)
+		log.Printf("%s", resp.Body)
 
 		if resp.Body != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
