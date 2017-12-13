@@ -328,8 +328,8 @@ func QueueBindHandler(w http.ResponseWriter, r *http.Request) {
 }
 func PublishHandler(w http.ResponseWriter, r *http.Request) {
 
-
-	c := make(chan amqp.Return)
+	cFail := make(chan amqp.Return)
+	cPass := make(chan amqp.Confirmation)
 	//var res []string
 	//
 	//for name, values := range r.Header {
@@ -358,23 +358,26 @@ func PublishHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		defer rabbit.Close()
 
+
 		if err = rabbit.Publish(entity.Exchange, entity.Key, entity.DeliveryMode, entity.Priority, entity.Body); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
 		
 		defer w.Write([]byte("publish message ok"))
-
-		rabbit.channel.NotifyReturn(c)
-		resp:= <-c
+		rabbit.channel.NotifyPublish(cPass)
+		
+		rabbit.channel.NotifyReturn(cFail)
 		log.Printf("Incorrect exchange or queue name")
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
-		
+
 	} else {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
 }
+
 
 
 func ExchangeHandler(w http.ResponseWriter, r *http.Request) {
