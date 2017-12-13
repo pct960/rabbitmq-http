@@ -328,6 +328,8 @@ func QueueBindHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func PublishHandler(w http.ResponseWriter, r *http.Request) {
+
+
 	c := make(chan amqp.Return)
 	//var res []string
 	//
@@ -361,15 +363,23 @@ func PublishHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		defer w.Write([]byte("publish message ok"))
+		
 		rabbit.channel.NotifyReturn(c)
 		resp:= <-c
-		log.Printf("%s", resp.ReplyText)
+		log.Printf("%s", resp)
+
+		if resp.Body != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Write([]byte("publish message ok"))
 
 	} else {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
 }
+
 
 func ExchangeHandler(w http.ResponseWriter, r *http.Request) {
 	//var res []string
