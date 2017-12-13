@@ -328,6 +328,7 @@ func QueueBindHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func PublishHandler(w http.ResponseWriter, r *http.Request) {
+	c := make(chan amqp.Return)
 	//var res []string
 	//
 	//for name, values := range r.Header {
@@ -360,7 +361,11 @@ func PublishHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		w.Write([]byte("publish message ok"))
+		defer w.Write([]byte("publish message ok"))
+		rabbit.channel.NotifyReturn(c)
+		resp:= <-c
+		log.Printf("%s", resp.ReplyText)
+
 	} else {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
