@@ -326,7 +326,6 @@ func QueueBindHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
 }
-
 func PublishHandler(w http.ResponseWriter, r *http.Request) {
 
 
@@ -364,17 +363,14 @@ func PublishHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		
+		defer w.Write([]byte("publish message ok"))
+
 		rabbit.channel.NotifyReturn(c)
 		resp:= <-c
-		log.Printf("%s", resp.Body)
-
-		if resp.Body != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		w.Write([]byte("publish message ok"))
-
+		log.Printf("Incorrect exchange or queue name")
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+		
 	} else {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
