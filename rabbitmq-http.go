@@ -10,12 +10,13 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+
 	//	"time"
 )
 
 var (
-	address = flag.String("address", "10.156.14.6:8989", "bind host:port")
-	amqpUri = flag.String("amqp", "amqp://rbccps:rbccps@123@10.156.14.6:5672/", "amqp uri")
+	address = flag.String("address", "0.0.0.0:8000", "bind host:port")
+	amqpUri = flag.String("amqp", "amqp://rbccps:rbccps@123@localhost:5672/", "amqp uri")
 )
 
 func init() {
@@ -76,6 +77,9 @@ func (r *RabbitMQ) Connect() (err error) {
 	return nil
 }
 
+
+
+
 func (r *RabbitMQ) Publish(exchange, key string, deliverymode, priority uint8, body string) (err error) {
 	err = r.channel.Publish(exchange, key, false, false,
 		amqp.Publishing{
@@ -87,6 +91,9 @@ func (r *RabbitMQ) Publish(exchange, key string, deliverymode, priority uint8, b
 			Body:            []byte(body),
 		},
 	)
+
+
+
 	if err != nil {
 		log.Printf("[amqp] publish message error: %s\n", err)
 		return err
@@ -328,6 +335,9 @@ func QueueBindHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func PublishHandler(w http.ResponseWriter, r *http.Request) {
+
+
+	c := make(chan amqp.Return)
 	//var res []string
 	//
 	//for name, values := range r.Header {
@@ -360,7 +370,11 @@ func PublishHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		w.Write([]byte("publish message ok"))
+		defer w.Write([]byte("publish message ok"))
+		rabbit.channel.NotifyReturn(c)
+		resp:= <-c
+		log.Printf("%s", resp.ReplyText)
+
 	} else {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
