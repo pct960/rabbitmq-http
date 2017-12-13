@@ -14,8 +14,8 @@ import (
 )
 
 var (
-	address = flag.String("address", "10.156.14.6:8989", "bind host:port")
-	amqpUri = flag.String("amqp", "amqp://rbccps:rbccps@123@10.156.14.6:5672/", "amqp uri")
+        address = flag.String("address", "0.0.0.0:8000", "bind host:port")
+        amqpUri = flag.String("amqp", "amqp://rbccps:rbccps@123@localhost:5672/", "amqp uri")
 )
 
 func init() {
