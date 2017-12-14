@@ -10,9 +10,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-
-	//	"time"
-	//"strconv"
 )
 
 var (
@@ -174,12 +171,6 @@ func (r *RabbitMQ) ConsumeQueue(queue string, message chan []byte) (err error) {
 	}(deliveries, r.done, message)
 	log.Printf("----------Queue is Empty Now-------");
 	return nil
-	//err = r.conn.Close()
-	//if err != nil {
-	//        log.Printf("[amqp] close error: %s\n", err)
-	//        return err
-	//}
-	//return nil
 }
 
 func (r *RabbitMQ) Close() (err error) {
@@ -193,14 +184,6 @@ func (r *RabbitMQ) Close() (err error) {
 
 // HTTP Handlers
 func QueueHandler(w http.ResponseWriter, r *http.Request) {
-	//var res []string
-	//
-	//for name, values := range r.Header {
-	//	for _, value := range values {
-	//		res = append(res, fmt.Sprintf("%s: %s", name, value))
-	//	}
-	//}
-	//log.Printf("%v", res)
 	if r.Method == "POST" || r.Method == "DELETE" {
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
@@ -246,9 +229,6 @@ func QueueHandler(w http.ResponseWriter, r *http.Request) {
 
 		log.Printf(r.Header.Get("X-Real-Ip")+" "+r.Header.Get("X-Consumer-Id")+" "+r.Header.Get("X-Consumer-Username")+" "+r.Header.Get("Apikey")+" ----------Connecting to the Queue-------");
 
-		//defer rabbit.Close()
-		//defer http.Close()
-
 		message := make(chan []byte)
 
 		for _, name := range r.Form["name"] {
@@ -277,11 +257,9 @@ func QueueHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(w, "%s\n", <-message)
 			w.(http.Flusher).Flush()
 			log.Printf(r.Header.Get("X-Real-Ip")+" "+r.Header.Get("X-Consumer-Id")+" "+r.Header.Get("X-Consumer-Username")+" "+r.Header.Get("Apikey")+" ----------Sending data to Client {%v}=============", name);
-			// log.Printf("--> %s",w);
 		}
 
 		rabbit.Close()
-		//r.Close()
 
 	} else {
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -289,14 +267,6 @@ func QueueHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func QueueBindHandler(w http.ResponseWriter, r *http.Request) {
-	//var res []string
-	//
-	//for name, values := range r.Header {
-	//	for _, value := range values {
-	//		res = append(res, fmt.Sprintf("%s: %s", name, value))
-	//	}
-	//}
-	//log.Printf("%v", res)
 	if r.Method == "POST" || r.Method == "DELETE" {
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
@@ -372,31 +342,11 @@ func PublishHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-
-
-		//rabbit.channel.NotifyPublish(cPass)
-		//c1:=<-cPass
-		//w.Write([]byte(strconv.FormatBool(c1.Ack)))
-
-		//rabbit.channel.NotifyReturn(cFail)
-		//c1:=<-cFail
-		//w.Write([]byte(c1.ReplyText))
-		//return
-
-
-
+		
 		rabbit.channel.NotifyReturn(cFail)
-		log.Printf("Incorrect exchange or queue name")
+		log.Printf(r.Header.Get("X-Real-Ip")+" "+r.Header.Get("X-Consumer-Id")+" "+r.Header.Get("X-Consumer-Username")+" "+r.Header.Get("Apikey")+" Incorrect exchange or queue name")
 		w.Write([]byte("Publish message OK\n"))
 		return
-
-		//defer http.Error(w, err.Error(), http.StatusInternalServerError)
-		//rabbit.channel.NotifyReturn(cFail)
-		//
-		//print(cFail.)
-		//
-		//w.Write([]byte("Publish message OK"))
-		//return
 
 	} else {
 		w.WriteHeader(http.StatusMethodNotAllowed)
