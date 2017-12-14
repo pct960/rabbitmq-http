@@ -12,6 +12,7 @@ import (
 	"net/http"
 
 	//	"time"
+	"strconv"
 )
 
 var (
@@ -337,7 +338,7 @@ func QueueBindHandler(w http.ResponseWriter, r *http.Request) {
 func PublishHandler(w http.ResponseWriter, r *http.Request) {
 
 	cFail := make(chan amqp.Return)
-	//cPass := make(chan amqp.Confirmation)
+	cPass := make(chan amqp.Confirmation)
 	//var res []string
 	//
 	//for name, values := range r.Header {
@@ -373,19 +374,24 @@ func PublishHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 
-		//defer w.Write([]byte("publish message ok"))
-		//rabbit.channel.NotifyPublish(cPass)
+		rabbit.channel.NotifyPublish(cPass)
+		c1:=<-cPass
+		w.Write([]byte(strconv.FormatBool(c1.Ack)))
+
+
 
 		//rabbit.channel.NotifyReturn(cFail)
 		//log.Printf("Incorrect exchange or queue name")
 		//http.Error(w, err.Error(), http.StatusInternalServerError)
 		//return
 
-		defer http.Error(w, err.Error(), http.StatusInternalServerError)
-		rabbit.channel.NotifyReturn(cFail)
-
-		w.Write([]byte("Publish message OK"))
-		return
+		//defer http.Error(w, err.Error(), http.StatusInternalServerError)
+		//rabbit.channel.NotifyReturn(cFail)
+		//
+		//print(cFail.)
+		//
+		//w.Write([]byte("Publish message OK"))
+		//return
 
 	} else {
 		w.WriteHeader(http.StatusMethodNotAllowed)
