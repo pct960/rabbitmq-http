@@ -12,7 +12,7 @@ import (
 	"net/http"
 
 	//	"time"
-	"strconv"
+	//"strconv"
 )
 
 var (
@@ -337,8 +337,8 @@ func QueueBindHandler(w http.ResponseWriter, r *http.Request) {
 
 func PublishHandler(w http.ResponseWriter, r *http.Request) {
 
-	//cFail := make(chan amqp.Return)
-	cPass := make(chan amqp.Confirmation)
+	cFail := make(chan amqp.Return)
+	//cPass := make(chan amqp.Confirmation)
 	//var res []string
 	//
 	//for name, values := range r.Header {
@@ -374,9 +374,14 @@ func PublishHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 
-		rabbit.channel.NotifyPublish(cPass)
-		c1:=<-cPass
-		w.Write([]byte(strconv.FormatBool(c1.Ack)))
+		//rabbit.channel.NotifyPublish(cPass)
+		//c1:=<-cPass
+		//w.Write([]byte(strconv.FormatBool(c1.Ack)))
+		
+		rabbit.channel.NotifyReturn(cFail)
+		c1:=<-cFail
+		w.Write([]byte(c1.ReplyText))
+		return 
 
 
 
