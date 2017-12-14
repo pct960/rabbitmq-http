@@ -364,8 +364,8 @@ func PublishHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		defer rabbit.Close()
 
+		defer rabbit.Close()
 
 		if err = rabbit.Publish(entity.Exchange, entity.Key, entity.DeliveryMode, entity.Priority, entity.Body); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -376,10 +376,16 @@ func PublishHandler(w http.ResponseWriter, r *http.Request) {
 		//defer w.Write([]byte("publish message ok"))
 		//rabbit.channel.NotifyPublish(cPass)
 
+		//rabbit.channel.NotifyReturn(cFail)
+		//log.Printf("Incorrect exchange or queue name")
+		//http.Error(w, err.Error(), http.StatusInternalServerError)
+		//return
+
+		defer http.Error(w, err.Error(), http.StatusInternalServerError)
 		rabbit.channel.NotifyReturn(cFail)
-		log.Printf("Incorrect exchange or queue name")
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+
+		w.Write([]byte("Publish message OK"))
+		return 		
 
 	} else {
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -387,14 +393,6 @@ func PublishHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func ExchangeHandler(w http.ResponseWriter, r *http.Request) {
-	//var res []string
-	//
-	//for name, values := range r.Header {
-	//	for _, value := range values {
-	//		res = append(res, fmt.Sprintf("%s: %s", name, value))
-	//	}
-	//}
-	//log.Printf("%v", res)
 	if r.Method == "POST" || r.Method == "DELETE" {
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
