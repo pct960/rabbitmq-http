@@ -377,18 +377,18 @@ func PublishHandler(w http.ResponseWriter, r *http.Request) {
 		//rabbit.channel.NotifyPublish(cPass)
 		//c1:=<-cPass
 		//w.Write([]byte(strconv.FormatBool(c1.Ack)))
-		
-		rabbit.channel.NotifyReturn(cFail)
-		c1:=<-cFail
-		w.Write([]byte(c1.ReplyText))
-		return 
-
-
 
 		//rabbit.channel.NotifyReturn(cFail)
-		//log.Printf("Incorrect exchange or queue name")
-		//http.Error(w, err.Error(), http.StatusInternalServerError)
+		//c1:=<-cFail
+		//w.Write([]byte(c1.ReplyText))
 		//return
+
+
+
+		rabbit.channel.NotifyReturn(cFail)
+		log.Printf("Incorrect exchange or queue name")
+		http.Error(w, err.Error(), http.StatusAccepted)
+		return
 
 		//defer http.Error(w, err.Error(), http.StatusInternalServerError)
 		//rabbit.channel.NotifyReturn(cFail)
