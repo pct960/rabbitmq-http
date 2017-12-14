@@ -337,7 +337,7 @@ func QueueBindHandler(w http.ResponseWriter, r *http.Request) {
 func PublishHandler(w http.ResponseWriter, r *http.Request) {
 
 	cFail := make(chan amqp.Return)
-	cPass := make(chan amqp.Confirmation)
+	//cPass := make(chan amqp.Confirmation)
 	//var res []string
 	//
 	//for name, values := range r.Header {
@@ -385,7 +385,7 @@ func PublishHandler(w http.ResponseWriter, r *http.Request) {
 		rabbit.channel.NotifyReturn(cFail)
 
 		w.Write([]byte("Publish message OK"))
-		return 		
+		return
 
 	} else {
 		w.WriteHeader(http.StatusMethodNotAllowed)
