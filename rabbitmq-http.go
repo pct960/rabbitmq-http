@@ -13,6 +13,7 @@ import (
 
 	//	"time"
 	//"strconv"
+	"strconv"
 )
 
 var (
@@ -387,7 +388,7 @@ func PublishHandler(w http.ResponseWriter, r *http.Request) {
 
 		rabbit.channel.NotifyReturn(cFail)
 		log.Printf("Incorrect exchange or queue name")
-		http.Error(w, err.Error(), http.StatusAccepted)
+		w.Write([]byte("Publish message OK\n"))
 		return
 
 		//defer http.Error(w, err.Error(), http.StatusInternalServerError)
