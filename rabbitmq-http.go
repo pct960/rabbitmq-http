@@ -308,7 +308,7 @@ func QueueBindHandler(w http.ResponseWriter, r *http.Request) {
 
 func PublishHandler(w http.ResponseWriter, r *http.Request) {
 
-	cFail := make(chan amqp.Return)
+	cFail := make(chan amqp.Return,	1)
 
 	if r.Method == "POST" {
 		body, err := ioutil.ReadAll(r.Body)
@@ -337,18 +337,18 @@ func PublishHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		rabbit.channel.NotifyReturn(cFail)
-		
+
 		select
 		{
 		case ch:=<-cFail:
 			log.Printf(r.Header.Get("X-Real-Ip")+" "+r.Header.Get("X-Consumer-Id")+" "+r.Header.Get("X-Consumer-Username")+" "+r.Header.Get("Apikey")+" Incorrect exchange or queue name")
 			http.Error(w,"Incorrect exchange or queue name "+ch.ReplyText,http.StatusBadRequest)
 			return
-		case <-time.After(time.Second):
+		case <-time.After(2*time.Second):
 			w.Write([]byte("Publish message OK\n"))
 			return
 		}
-		
+
 
 	} else {
 		w.WriteHeader(http.StatusMethodNotAllowed)
