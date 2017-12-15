@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"time"
 )
 
 var (
@@ -344,7 +345,7 @@ func PublishHandler(w http.ResponseWriter, r *http.Request) {
 				http.Error(w,"Incorrect exchange or queue name "+ch.ReplyText,http.StatusBadRequest)
 				return
 
-			default:
+			case <- time.After(100*time.Millisecond):
 				w.Write([]byte("Publish message OK\n"))
 				return
 		}
