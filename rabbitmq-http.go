@@ -355,7 +355,7 @@ func PublishHandler(w http.ResponseWriter, r *http.Request) {
 			log.Printf(r.Header.Get("X-Real-Ip")+" "+r.Header.Get("X-Consumer-Id")+" "+r.Header.Get("X-Consumer-Username")+" "+r.Header.Get("Apikey")+" Incorrect exchange or queue name")
 			http.Error(w,"Incorrect exchange or queue name "+ch.ReplyText,http.StatusBadRequest)
 			return
-		case <-time.After(2 * time.Second):
+		case <-time.After(0.1 * time.Second):
 			w.Write([]byte("Publish message OK\n"))
 			return
 		}
