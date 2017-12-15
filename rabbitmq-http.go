@@ -309,6 +309,7 @@ func QueueBindHandler(w http.ResponseWriter, r *http.Request) {
 func PublishHandler(w http.ResponseWriter, r *http.Request) {
 
 	cFail := make(chan amqp.Return)
+	cPass := make(chan amqp.Confirmation)
 
 	if r.Method == "POST" {
 		body, err := ioutil.ReadAll(r.Body)
@@ -337,6 +338,7 @@ func PublishHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		rabbit.channel.NotifyReturn(cFail)
+		rabbit.channel.NotifyPublish(cPass)
 
 		//select
 		//{
@@ -355,13 +357,28 @@ func PublishHandler(w http.ResponseWriter, r *http.Request) {
 			log.Printf(r.Header.Get("X-Real-Ip")+" "+r.Header.Get("X-Consumer-Id")+" "+r.Header.Get("X-Consumer-Username")+" "+r.Header.Get("Apikey")+" Incorrect exchange or queue name")
 			http.Error(w,"Incorrect exchange or queue name "+ch.ReplyText,http.StatusBadRequest)
 			return
-		case <-time.After(0.1 * time.Second):
-			w.Write([]byte("Publish message OK\n"))
+		case <-time.After(100*time.Millisecond):
+			w.Write([]byte("Publish message OKdkjvfbfwjln\n"))
 			return
 		}
 
+
+		//select
+		//{
+		//case ch:=<-cFail:
+		//	log.Printf(r.Header.Get("X-Real-Ip")+" "+r.Header.Get("X-Consumer-Id")+" "+r.Header.Get("X-Consumer-Username")+" "+r.Header.Get("Apikey")+" Incorrect exchange or queue name")
+		//	http.Error(w,"Incorrect exchange or queue name "+ch.ReplyText,http.StatusBadRequest)
+		//	return
+		//case ch1:=<-cPass:
+		//	if ch1.Ack {
+		//		w.Write([]byte("Publish message OK "))
+		//		return
+		//	}
+		//}
+
 	} else {
 		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
 	}
 }
 
