@@ -187,7 +187,7 @@ func (r *RabbitMQ) Close() (err error) {
 
 // HTTP Handlers
 func QueueHandler(w http.ResponseWriter, r *http.Request) {
-	
+
 	request=r
 	if r.Method == "POST" || r.Method == "DELETE" {
 		body, err := ioutil.ReadAll(r.Body)
@@ -237,9 +237,9 @@ func QueueHandler(w http.ResponseWriter, r *http.Request) {
 		message := make(chan []byte)
 
 		for _, name := range r.Form["name"] {
-			fmt.Printf("Got {%v}", name)
+			log.Printf(request.Header.Get("X-Real-Ip")+" "+request.Header.Get("X-Consumer-Id")+" "+request.Header.Get("X-Consumer-Username")+" "+request.Header.Get("Apikey")+" Got {%v}", name)
 			if err := rabbit.ConsumeQueue(name, message); err != nil {
-				fmt.Printf("Connection Closed")
+				log.Printf(request.Header.Get("X-Real-Ip")+" "+request.Header.Get("X-Consumer-Id")+" "+request.Header.Get("X-Consumer-Username")+" "+request.Header.Get("Apikey")+" Connection Closed")
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
@@ -272,7 +272,7 @@ func QueueHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func QueueBindHandler(w http.ResponseWriter, r *http.Request) {
-	
+
 	request=r
 	if r.Method == "POST" || r.Method == "DELETE" {
 		body, err := ioutil.ReadAll(r.Body)
@@ -366,7 +366,7 @@ func PublishHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func ExchangeHandler(w http.ResponseWriter, r *http.Request) {
-	
+
 	request=r
 	if r.Method == "POST" || r.Method == "DELETE" {
 		body, err := ioutil.ReadAll(r.Body)
