@@ -168,11 +168,11 @@ func (r *RabbitMQ) ConsumeQueue(queue string, message chan []byte) (err error) {
 	go func(deliveries <-chan amqp.Delivery, done chan error, message chan []byte) {
 		for d := range deliveries {
 			message <- d.Body
-			log.Printf(request.Header.Get("X-Real-Ip")+" "+request.Header.Get("X-Consumer-Id")+" "+request.Header.Get("X-Consumer-Username")+" "+request.Header.Get("Apikey")+" ----------Sending Content in Queue Now-------")
+			log.Printf(request.Header.Get("X-Real-Ip")+" "+request.Header.Get("X-Consumer-Id")+" "+request.Header.Get("X-Consumer-Username")+" "+request.Header.Get("Apikey")+" Sending Content in Queue Now")
 		}
 		done <- nil
 	}(deliveries, r.done, message)
-	log.Printf(request.Header.Get("X-Real-Ip")+" "+request.Header.Get("X-Consumer-Id")+" "+request.Header.Get("X-Consumer-Username")+" "+request.Header.Get("Apikey")+" ----------Queue is Empty Now-------")
+	log.Printf(request.Header.Get("X-Real-Ip")+" "+request.Header.Get("X-Consumer-Id")+" "+request.Header.Get("X-Consumer-Username")+" "+request.Header.Get("Apikey")+" Queue is Empty Now")
 	return nil
 }
 
@@ -225,14 +225,14 @@ func QueueHandler(w http.ResponseWriter, r *http.Request) {
 	} else if r.Method == "GET" {
 		r.ParseForm()
 
-		log.Printf(r.Header.Get("X-Real-Ip")+" "+r.Header.Get("X-Consumer-Id")+" "+r.Header.Get("X-Consumer-Username")+" "+r.Header.Get("Apikey")+" ----------In GET QueueHandler Now-------")
+		log.Printf(r.Header.Get("X-Real-Ip")+" "+r.Header.Get("X-Consumer-Id")+" "+r.Header.Get("X-Consumer-Username")+" "+r.Header.Get("Apikey")+" In GET QueueHandler Now")
 		rabbit := new(RabbitMQ)
 		if err := rabbit.Connect(); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		log.Printf(r.Header.Get("X-Real-Ip")+" "+r.Header.Get("X-Consumer-Id")+" "+r.Header.Get("X-Consumer-Username")+" "+r.Header.Get("Apikey")+" ----------Connecting to the Queue-------")
+		log.Printf(r.Header.Get("X-Real-Ip")+" "+r.Header.Get("X-Consumer-Id")+" "+r.Header.Get("X-Consumer-Username")+" "+r.Header.Get("Apikey")+" Connecting to the Queue")
 
 		message := make(chan []byte)
 
@@ -253,15 +253,15 @@ func QueueHandler(w http.ResponseWriter, r *http.Request) {
 		notify := w.(http.CloseNotifier).CloseNotify()
 		go func() {
 			<-notify
-			log.Printf(r.Header.Get("X-Real-Ip")+" "+r.Header.Get("X-Consumer-Id")+" "+r.Header.Get("X-Consumer-Username")+" "+r.Header.Get("Apikey")+" =================HTTP connection just closed for {%v}=============", name)
+			log.Printf(r.Header.Get("X-Real-Ip")+" "+r.Header.Get("X-Consumer-Id")+" "+r.Header.Get("X-Consumer-Username")+" "+r.Header.Get("Apikey")+" HTTP connection just closed for {%v}", name)
 			rabbit.Close()
-			log.Printf(r.Header.Get("X-Real-Ip")+" "+r.Header.Get("X-Consumer-Id")+" "+r.Header.Get("X-Consumer-Username")+" "+r.Header.Get("Apikey")+" =================AMQP connection is now closed for {%v}=============", name)
+			log.Printf(r.Header.Get("X-Real-Ip")+" "+r.Header.Get("X-Consumer-Id")+" "+r.Header.Get("X-Consumer-Username")+" "+r.Header.Get("Apikey")+" AMQP connection is now closed for {%v}", name)
 		}()
 
 		for {
 			fmt.Fprintf(w, "%s\n", <-message)
 			w.(http.Flusher).Flush()
-			log.Printf(r.Header.Get("X-Real-Ip")+" "+r.Header.Get("X-Consumer-Id")+" "+r.Header.Get("X-Consumer-Username")+" "+r.Header.Get("Apikey")+" ----------Sending data to Client {%v}=============", name)
+			log.Printf(r.Header.Get("X-Real-Ip")+" "+r.Header.Get("X-Consumer-Id")+" "+r.Header.Get("X-Consumer-Username")+" "+r.Header.Get("Apikey")+" Sending data to Client {%v}", name)
 		}
 
 		rabbit.Close()
