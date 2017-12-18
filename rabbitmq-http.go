@@ -349,7 +349,7 @@ func PublishHandler(w http.ResponseWriter, r *http.Request) {
 		{
 			case ch:=<-cFail:
 				log.Printf(r.Header.Get("X-Real-Ip")+" "+r.Header.Get("X-Consumer-Id")+" "+r.Header.Get("X-Consumer-Username")+" "+r.Header.Get("Apikey")+" Incorrect exchange or queue name")
-				http.Error(w,"Incorrect exchange or queue name "+ch.ReplyText,http.StatusBadRequest)
+				http.Error(w,"Incorrect exchange or queue name "+ch.ReplyText,http.StatusNotFound)
 				return
 
 			case <- time.After(100*time.Millisecond):
