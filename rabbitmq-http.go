@@ -352,7 +352,7 @@ func PublishHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w,"Incorrect exchange or queue name "+ch.ReplyText,http.StatusNotFound)
 			return
 
-		case <- time.After(100*time.Microsecond):
+		case <- time.After(100*time.Nanosecond):
 			w.Write([]byte("Publish message OK\n"))
 			return
 		}
