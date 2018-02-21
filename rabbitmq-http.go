@@ -10,7 +10,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	//"time"
+	"time"
 )
 
 var (
@@ -345,29 +345,29 @@ func PublishHandler(w http.ResponseWriter, r *http.Request) {
 
 		rabbit.channel.NotifyReturn(cFail)
 
-		//select
-		//{
-		//case ch:=<-cFail:
-		//	log.Printf(r.Header.Get("X-Real-Ip")+" "+r.Header.Get("X-Consumer-Id")+" "+r.Header.Get("X-Consumer-Username")+" "+r.Header.Get("Apikey")+" Incorrect exchange or queue name")
-		//	http.Error(w,"Incorrect exchange or queue name "+ch.ReplyText,http.StatusNotFound)
-		//	return
-		//
-		//case <- time.After(100*time.Millisecond):
-		//	w.Write([]byte("Publish message OK\n"))
-		//	return
-		//}
-
 		select
 		{
 		case ch:=<-cFail:
 			log.Printf(r.Header.Get("X-Real-Ip")+" "+r.Header.Get("X-Consumer-Id")+" "+r.Header.Get("X-Consumer-Username")+" "+r.Header.Get("Apikey")+" Incorrect exchange or queue name")
 			http.Error(w,"Incorrect exchange or queue name "+ch.ReplyText,http.StatusNotFound)
 			return
-
-		default:
+		
+		case <- time.After(100*time.Microsecond):
 			w.Write([]byte("Publish message OK\n"))
 			return
 		}
+
+// 		select
+// 		{
+// 		case ch:=<-cFail:
+// 			log.Printf(r.Header.Get("X-Real-Ip")+" "+r.Header.Get("X-Consumer-Id")+" "+r.Header.Get("X-Consumer-Username")+" "+r.Header.Get("Apikey")+" Incorrect exchange or queue name")
+// 			http.Error(w,"Incorrect exchange or queue name "+ch.ReplyText,http.StatusNotFound)
+// 			return
+
+// 		default:
+// 			w.Write([]byte("Publish message OK\n"))
+// 			return
+// 		}
 
 
 
