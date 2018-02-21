@@ -1,5 +1,5 @@
 // Copyright (C) 2013 Chen "smallfish" Xiaoyu (陈小玉)
-// Updated 2017 by Vasanth Rajaraman, RBCCPS, Indian Institute of Science (ver.0.1.0)
+// Updated 2018 by Poorna Chandra Tejasvi, RBCCPS, Indian Institute of Science (ver.0.1.0)
 package main
 
 import (
