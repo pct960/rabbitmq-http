@@ -53,7 +53,7 @@ type QueueBindEntity struct {
 	Queue    string   `json:"queue"`
 	Exchange string   `json:"exchange"`
 	NoWait   bool     `json:"nowait"`
-	Keys     []string `json:"keys"` // bind/routing keys
+	Key     []string `json:"key"` // bind/routing keys
 }
 
 // RabbitMQ Operate Wrapper
@@ -62,6 +62,7 @@ type RabbitMQ struct {
 	channel *amqp.Channel
 	done    chan error
 }
+
 
 func (r *RabbitMQ) Connect() (err error) {
 	r.conn, err = amqp.Dial(*amqpUri)
@@ -82,6 +83,7 @@ func (r *RabbitMQ) Connect() (err error) {
 
 
 func (r *RabbitMQ) Publish(exchange, key string, deliverymode, priority uint8, body string) (err error) {
+
 	err = r.channel.Publish(exchange, key, false, false,
 		amqp.Publishing{
 			Headers:         amqp.Table{},
@@ -140,6 +142,7 @@ func (r *RabbitMQ) DeleteQueue(name string) (err error) {
 }
 
 func (r *RabbitMQ) BindQueue(queue, exchange string, keys []string, nowait bool) (err error) {
+
 	for _, key := range keys {
 		if err = r.channel.QueueBind(queue, key, exchange, nowait, nil); err != nil {
 			log.Printf(request.Header.Get("X-Real-Ip")+" "+request.Header.Get("X-Consumer-Id")+" "+request.Header.Get("X-Consumer-Username")+" "+request.Header.Get("Apikey")+" [amqp] bind queue error: %s\n", err)
@@ -295,13 +298,18 @@ func QueueBindHandler(w http.ResponseWriter, r *http.Request) {
 		defer rabbit.Close()
 
 		if r.Method == "POST" {
-			if err = rabbit.BindQueue(entity.Queue, entity.Exchange, entity.Keys, entity.NoWait); err != nil {
+
+			entity.Exchange = entity.Key[0] + ".protected"
+			entity.Queue = request.Header.Get("X-Consumer-Username")
+			if err = rabbit.BindQueue(entity.Queue, entity.Exchange, entity.Key, entity.NoWait); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 			w.Write([]byte("Bind queue OK\n"))
 		} else if r.Method == "DELETE" {
-			if err = rabbit.UnBindQueue(entity.Queue, entity.Exchange, entity.Keys); err != nil {
+                        entity.Exchange = entity.Key[0] + ".protected"
+                        entity.Queue = request.Header.Get("X-Consumer-Username")
+			if err = rabbit.UnBindQueue(entity.Queue, entity.Exchange, entity.Key); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
@@ -337,7 +345,8 @@ func PublishHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		defer rabbit.Close()
-
+        entity.Exchange = request.Header.Get("X-Consumer-Username") + ".protected"
+        entity.Key = request.Header.Get("X-Consumer-Username")
 		if err = rabbit.Publish(entity.Exchange, entity.Key, entity.DeliveryMode, entity.Priority, entity.Body); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
