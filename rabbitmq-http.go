@@ -1,5 +1,5 @@
 // Copyright (C) 2013 Chen "smallfish" Xiaoyu (陈小玉)
-// Updated 2018 by Poorna Chandra Tejasvi, RBCCPS, Indian Institute of Science (ver.0.1.0)
+// Updated by RBCCPS
 package main
 
 import (
@@ -15,7 +15,6 @@ import (
 
 var (
 	address = flag.String("address", "0.0.0.0:8000", "bind host:port")
-	amqpUri = flag.String("amqp", "amqp://rbccps:rbccps@123@localhost:5672/", "amqp uri")
 )
 
 var request *http.Request
@@ -65,7 +64,7 @@ type RabbitMQ struct {
 
 
 func (r *RabbitMQ) Connect() (err error) {
-	r.conn, err = amqp.Dial(*amqpUri)
+	r.conn, err = amqp.Dial("amqp://" + request.Header.Get("X-Consumer-Username") + ":" + request.Header.Get("Apikey") + "@localhost:5672/")
 	if err != nil {
 		log.Printf(request.Header.Get("X-Real-Ip")+" "+request.Header.Get("X-Consumer-Id")+" "+request.Header.Get("X-Consumer-Username")+" "+request.Header.Get("Apikey")+" [amqp] connect error: %s\n", err)
 		return err
@@ -299,16 +298,16 @@ func QueueBindHandler(w http.ResponseWriter, r *http.Request) {
 
 		if r.Method == "POST" {
 
-			entity.Exchange = entity.Key[0] + ".protected"
-			entity.Queue = request.Header.Get("X-Consumer-Username")
+			//entity.Exchange = entity.Key[0] + ".protected"
+			//entity.Queue = request.Header.Get("X-Consumer-Username")
 			if err = rabbit.BindQueue(entity.Queue, entity.Exchange, entity.Key, entity.NoWait); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 			w.Write([]byte("Bind queue OK\n"))
 		} else if r.Method == "DELETE" {
-                        entity.Exchange = entity.Key[0] + ".protected"
-                        entity.Queue = request.Header.Get("X-Consumer-Username")
+                        //entity.Exchange = entity.Key[0] + ".protected"
+                        //entity.Queue = request.Header.Get("X-Consumer-Username")
 			if err = rabbit.UnBindQueue(entity.Queue, entity.Exchange, entity.Key); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -345,8 +344,10 @@ func PublishHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		defer rabbit.Close()
-        entity.Exchange = request.Header.Get("X-Consumer-Username") + ".protected"
-        entity.Key = request.Header.Get("X-Consumer-Username")
+		if entity.Exchange == "" { entity.Exchange = request.Header.Get("X-Consumer-Username") + ".protected" }
+		if entity.Key == "" { entity.Key = request.Header.Get("X-Consumer-Username") }
+//entity.Exchange = request.Header.Get("X-Consumer-Username") + ".protected"
+        //entity.Key = request.Header.Get("X-Consumer-Username")
 		if err = rabbit.Publish(entity.Exchange, entity.Key, entity.DeliveryMode, entity.Priority, entity.Body); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -360,7 +361,7 @@ func PublishHandler(w http.ResponseWriter, r *http.Request) {
 			log.Printf(r.Header.Get("X-Real-Ip")+" "+r.Header.Get("X-Consumer-Id")+" "+r.Header.Get("X-Consumer-Username")+" "+r.Header.Get("Apikey")+" Incorrect exchange or queue name")
 			http.Error(w,"Incorrect exchange or queue name "+ch.ReplyText,http.StatusNotFound)
 			return
-		
+
 		case <- time.After(100*time.Millisecond):
 			w.Write([]byte("Publish message OK\n"))
 			return
@@ -435,7 +436,7 @@ func main() {
 	http.HandleFunc("/publish", PublishHandler)
 
 	// Start HTTP Server
-	log.Printf("server run %s (listen %s)\n", *address, *amqpUri)
+	log.Printf("server run %s \n", *address)
 	err := http.ListenAndServe(*address, nil)
 	if err != nil {
 		log.Fatal(err)
